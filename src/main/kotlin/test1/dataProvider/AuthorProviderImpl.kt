@@ -4,12 +4,20 @@ import test1.di.ServiceLocator
 import test1.entity.Author
 import test1.entity.AuthorsData
 import kotlinx.coroutines.*
+import java.net.UnknownHostException
 
 class AuthorProviderImpl : AuthorProvider {
     private val authorsService = ServiceLocator.getAuthorsArticlesService()
+    private val handler = CoroutineExceptionHandler { _, exception ->
+        if (exception is UnknownHostException) {
+            println("There is no internet")
+        } else {
+            println("CoroutineExceptionHandler got $exception")
+        }
+    }
 
     override fun getAllAuthors(): List<Author> = runBlocking {
-        val scope = CoroutineScope(Job())
+        val scope = CoroutineScope(Job() + handler)
         val allAuthors: MutableList<Author> = mutableListOf()
 
         val job = scope.launch(Dispatchers.IO) {
